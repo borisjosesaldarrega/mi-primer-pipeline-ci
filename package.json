@@ -1,16 +1,16 @@
-{
+﻿{
   "name": "mi-primer-pipeline-ci",
   "version": "1.0.0",
-  "description": "Proyecto de práctica para aprender integración continua con GitHub Actions",
+  "description": "Proyecto de práctica para diseñar y comprobar un pipeline de integración continua con GitHub Actions",
   "private": true,
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test",
-    "lint:yaml": "python -m yamllint .",
-    "lint:actions": "actionlint"
+    "test:coverage": "node --test --experimental-test-coverage",
+    "lint": "npx --yes eslint@8.57.1 src test --max-warnings=0"
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=20"
   }
 }

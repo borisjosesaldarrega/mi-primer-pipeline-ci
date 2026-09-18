@@ -1,28 +1,21 @@
-# Mi primer pipeline de CI
+﻿# Mi primer pipeline de CI
 
-Repositorio de práctica preparado para trabajar con integración continua en GitHub Actions.
+Proyecto de práctica para comprobar un pipeline de integración continua con GitHub Actions.
 
-## Requisitos
+## Requisitos cubiertos
 
-- Git
-- Node.js 24 o superior y npm
-- Python 3.13 o superior
-- Java 17 o superior
-- `yamllint` y `actionlint`
-- Visual Studio Code con las extensiones YAML e indent-rainbow
+- Push a `main`.
+- Pull request hacia `main`.
+- Cambios únicamente en `docs/` no disparan el workflow.
+- Job `calidad` ejecuta ESLint y falla si hay advertencias.
+- Job `pruebas` usa una matriz con Node.js 20 y 22.
+- Job `empaquetar` depende de `calidad` y `pruebas`.
+- Se publican el paquete generado y los reportes de cobertura como artefactos.
 
 ## Uso local
 
 ```powershell
-npm ci
 npm test
-python -m yamllint .
-actionlint
+npm run test:coverage
+npm run lint
 ```
-
-## Ramas
-
-- `main`: versión estable.
-- `develop`: rama de trabajo para la siguiente clase.
-
-El workflow [`.github/workflows/hola.yml`](.github/workflows/hola.yml) se ejecuta al enviar cambios a `main` o `develop`, al abrir un pull request y también de forma manual.

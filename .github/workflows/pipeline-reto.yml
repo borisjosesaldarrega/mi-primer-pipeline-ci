@@ -1,0 +1,109 @@
+﻿name: Pipeline CI - Reto
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  calidad:
+    name: Calidad
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ejecutar linter
+        run: npm run lint
+
+  pruebas:
+    name: Pruebas - Node.js ${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 20
+          - 22
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Ejecutar pruebas con cobertura
+        shell: bash
+        run: |
+          mkdir -p coverage
+          set -o pipefail
+          npm run test:coverage | tee "coverage/node-${{ matrix.node }}.txt"
+
+      - name: Guardar cobertura temporal
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-node-${{ matrix.node }}
+          path: coverage/node-${{ matrix.node }}.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  empaquetar:
+    name: Empaquetar
+    runs-on: ubuntu-latest
+    needs:
+      - calidad
+      - pruebas
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Crear paquete
+        shell: bash
+        run: |
+          mkdir -p dist
+          tar -czf dist/mi-primer-pipeline-ci.tar.gz src test package.json README.md
+
+      - name: Descargar reportes de cobertura
+        uses: actions/download-artifact@v4
+        with:
+          pattern: cobertura-node-*
+          path: coverage
+          merge-multiple: true
+
+      - name: Publicar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefacto-aplicacion
+          path: dist/mi-primer-pipeline-ci.tar.gz
+          if-no-files-found: error
+
+      - name: Publicar reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-cobertura
+          path: coverage/*.txt
+          if-no-files-found: error
